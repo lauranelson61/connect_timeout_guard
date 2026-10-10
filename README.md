@@ -25,3 +25,10 @@ except ConnectTimeoutExpired as exc:
 On non-blocking sockets, some kernels return `EINPROGRESS` or `EWOULDBLOCK` wrapped as a plain `OSError` rather than the `BlockingIOError` subclass. The guard treats both errnos as a deadline expiry, because from the caller's perspective the handshake did not finish. If you pass a non-blocking socket and your platform uses a different errno for the same situation, that case will surface as a raw `OSError`. `ConnectRefused` is raised only for the stdlib `ConnectionRefusedError`; other connection failures propagate as their original exception type.
 
 The constructor accepts a `clock` callable so tests can pass a fake monotonic clock instead of relying on wall time.
+
+## Performance
+
+The window keeps a bounded buffer, so `push` is constant time and memory does not
+grow with the length of the stream. `peak` and `trough` are linear in the window
+size, which is the trade that keeps `push` cheap.
+
